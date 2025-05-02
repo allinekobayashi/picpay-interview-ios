@@ -1,11 +1,10 @@
 import UIKit
 
-class UserIdsLegacy {
-    static let legacyIds = [10, 11, 12, 13]
-    
-    static func isLegacy(id: Int) -> Bool {
-        return legacyIds.contains(id)
-    }
+protocol ListContactsView: AnyObject {
+    func showLoading()
+    func hideLoading()
+    func showContacts(_ contacts: [Contact])
+    func showError(_ message: String)
 }
 
 class ListContactsViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
@@ -29,9 +28,10 @@ class ListContactsViewController: UIViewController, UITableViewDataSource, UITab
     }()
     
     var contacts = [Contact]()
-    var viewModel: ListContactsViewModel!
+    var presenter: ListContactsPresenter
     
-    init() {
+    init(presenter: ListContactsPresenter = ListContactsPresenterImpl()) {
+        self.presenter = presenter
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -48,12 +48,12 @@ class ListContactsViewController: UIViewController, UITableViewDataSource, UITab
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        viewModel = ListContactsViewModel()
         configureViews()
         
         navigationController?.title = "Lista de contatos"
         
-        loadData()
+        presenter.configure(with: self)
+        presenter.viewDidLoad()
     }
     
     func configureViews() {
@@ -67,10 +67,6 @@ class ListContactsViewController: UIViewController, UITableViewDataSource, UITab
         ])
     }
     
-    func isLegacy(contact: Contact) -> Bool {
-        return UserIdsLegacy.isLegacy(id: contact.id)
-    }
-    
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return contacts.count
     }
@@ -81,50 +77,60 @@ class ListContactsViewController: UIViewController, UITableViewDataSource, UITab
         }
         
         let contact = contacts[indexPath.row]
-        cell.fullnameLabel.text = contact.name
-        
-        if let urlPhoto = URL(string: contact.photoURL) {
-            do {
-                let data = try Data(contentsOf: urlPhoto)
-                let image = UIImage(data: data)
-                cell.contactImage.image = image
-            } catch _ {}
+        print("cellForRow \(indexPath.row)")
+        presenter.cellWillAppear(for: contact) { cellViewModel in
+            cell.configure(with: cellViewModel)
         }
         
         return cell
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let contato = contacts[indexPath.row - 1]
-        
-        guard isLegacy(contact: contato) else {
-            let alert = UIAlertController(title: "Você tocou em", message: "\(contato.name)", preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
-            self.present(alert, animated: true)
-            return
-        }
-        
-        let alert = UIAlertController(title: "Atenção", message:"Você tocou no contato sorteado", preferredStyle: .alert)
+        let contact = contacts[indexPath.row]
+        showAlert(contact.alert)
+    }
+}
+
+extension ListContactsViewController: ListContactsView {
+    func showLoading() {
+        self.activity.startAnimating()
+    }
+    
+    func hideLoading() {
+        self.activity.stopAnimating()
+    }
+    
+    func showContacts(_ contacts: [Contact]) {
+        self.contacts = contacts
+        self.tableView.reloadData()
+    }
+    
+    func showError(_ message: String) {
+        let alert = UIAlertController(title: "Ops, ocorreu um erro", message: message, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
         self.present(alert, animated: true)
     }
     
-    func loadData() {
-        viewModel.loadContacts { contacts, error in
-            DispatchQueue.main.async {
-                if let error = error {
-                    print(error)
-                    
-                    let alert = UIAlertController(title: "Ops, ocorreu um erro", message: error.localizedDescription, preferredStyle: .alert)
-                    alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
-                    self.present(alert, animated: true)
-                    return
-                }
-                
-                self.contacts = contacts ?? []
-                self.tableView.reloadData()
-                self.activity.stopAnimating()
-            }
-        }
+    func showAlert(_ alert: Contact.AlertConfig) {
+        let alert = UIAlertController(
+            title: alert.title,
+            message: alert.message,
+            preferredStyle: .alert
+        )
+        alert.addAction(UIAlertAction(
+            title: "OK",
+            style: .default,
+            handler: nil
+        ))
+        self.present(alert, animated: true)
+    }
+}
+
+// TODO: implement prefetching
+extension ListContactsViewController: UITableViewDataSourcePrefetching {
+    func tableView(_ tableView: UITableView, prefetchRowsAt indexPaths: [IndexPath]) {
+    }
+    
+    func tableView(_ tableView: UITableView, cancelPrefetchingForRowsAt indexPaths: [IndexPath]) {
     }
 }

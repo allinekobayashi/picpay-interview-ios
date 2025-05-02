@@ -1,7 +1,12 @@
 import UIKit
 
-class ContactCell: UITableViewCell {
-    lazy var contactImage: UIImageView = {
+struct ContactCellViewModel {
+    let label: String
+    let image: UIImage
+}
+
+final class ContactCell: UITableViewCell {
+    private lazy var contactImage: UIImageView = {
         let imgView = UIImageView()
         imgView.translatesAutoresizingMaskIntoConstraints = false
         imgView.contentMode = .scaleAspectFit
@@ -9,12 +14,14 @@ class ContactCell: UITableViewCell {
         return imgView
     }()
     
-    lazy var fullnameLabel: UILabel = {
+    private lazy var fullnameLabel: UILabel = {
         let label = UILabel()
         label.font = UIFont.systemFont(ofSize: 20, weight: .semibold)
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
+    
+    private var viewModel: ContactCellViewModel?
     
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
@@ -41,5 +48,10 @@ class ContactCell: UITableViewCell {
         fullnameLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -15).isActive = true
         fullnameLabel.topAnchor.constraint(equalTo: contentView.topAnchor).isActive = true
         fullnameLabel.bottomAnchor.constraint(equalTo: contentView.bottomAnchor).isActive = true
+    }
+    
+    func configure(with viewModel: ContactCellViewModel) {
+        self.fullnameLabel.text = viewModel.label
+        self.contactImage.image = viewModel.image
     }
 }
