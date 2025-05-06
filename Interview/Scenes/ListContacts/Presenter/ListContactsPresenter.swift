@@ -44,7 +44,6 @@ final class ListContactsPresenterImpl: ListContactsPresenter {
         }
         
         interactor.loadImage(from: url) {  image in
-            print("load image \(contact.name)")
             DispatchQueue.main.async {
                 guard let image else {
                     completion(cellWithDefaultImage)

@@ -1,8 +1,8 @@
 import Foundation
 import UIKit
 
-struct Contact {
-    struct AlertConfig {
+struct Contact: Equatable {
+    struct AlertConfig: Equatable {
         var title: String
         var message: String
     }

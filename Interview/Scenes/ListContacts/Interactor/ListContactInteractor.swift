@@ -42,8 +42,8 @@ final class ListContactInteractorImpl: ListContactInteractor {
                     // Log the error
                     print("⚠️ Fetching data error occurred")
                     completion(.failure)
-                case .decoding(let error):
-                    print("⚠️ Network error occurred: \(error.localizedDescription)")
+                case .decoding:
+                    print("⚠️ Network error occurred")
                     completion(.failure)
                 }
             }

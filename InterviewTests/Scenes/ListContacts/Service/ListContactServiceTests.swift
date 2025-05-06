@@ -1,14 +1,36 @@
 import XCTest
 @testable import Interview
 
-class ListContactServiceTests: XCTestCase {
+final class ListContactServiceTests: XCTestCase {
+    
+    func givenJsonErrorWhenFetchingContactsThenResultFetchingDataError() {
+        let mockSession = MockURLSession()
+        let mockCache = MockImageCache()
+        let contactService = ListContactServiceImpl(session: mockSession, cache: mockCache)
 
-    override func setUp() {
-        // Put setup code here. This method is called before the invocation of each test method in the class.
+        mockSession.nextData = nil
+
+        let expectation = self.expectation(description: "Contacts fetch failed")
+
+        contactService.fetchContacts { response in
+            switch response {
+            case .success:
+                XCTFail("Expected failure but got success")
+            case .failure(let error):
+                XCTAssertEqual(error, .fetchingData)
+            }
+            expectation.fulfill()
+        }
+
+        waitForExpectations(timeout: 1, handler: nil)
     }
-
-    override func tearDown() {
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
+    
+    func givenURLErrorWhenFetchingContactsThenResultParsingURLError() {
+        
+    }
+    
+    func givenSuccessfullyDecodeJsonWhenFetchingContactsThenResultCorrectContactInfo() {
+        
     }
 }
 

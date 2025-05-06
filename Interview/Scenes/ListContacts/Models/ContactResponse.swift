@@ -18,7 +18,7 @@ import Foundation
  Cleaning:
  - No need to have define the CodingKeys if the interface is the same as in the JSON
  */
-struct ContactResponse: Codable {
+struct ContactResponse: Codable, Equatable {
     var id: Int
     var name: String
     var photoURL: String

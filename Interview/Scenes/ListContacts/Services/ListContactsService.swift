@@ -1,10 +1,12 @@
 import Foundation
 import UIKit
 
+// Removing Error from response to make test easier
+// Proper fix: create a Equatable abstraction to Error
 enum ServiceError {
     case parsingURL
     case fetchingData
-    case decoding(Error)
+    case decoding
 }
 
 enum ContactServiceResponse {
@@ -19,10 +21,10 @@ protocol ListContactService {
 
 final class ListContactServiceImpl: ListContactService {
     private let contactURL = "https://669ff1b9b132e2c136ffa741.mockapi.io/picpay/ios/interview/contacts"
-    private let session: URLSession
+    private let session: URLSessionProtocol
     private let cache: ImageCache
 
-    init(session: URLSession = .shared, cache: ImageCache = ImageCacheImpl()) {
+    init(session: URLSessionProtocol = URLSession.shared, cache: ImageCache = ImageCacheImpl()) {
         self.session = session
         self.cache = cache
     }
@@ -44,8 +46,8 @@ final class ListContactServiceImpl: ListContactService {
                 let decoded = try decoder.decode([ContactResponse].self, from: jsonData)
                 
                 completion(.success(decoded))
-            } catch let error {
-                completion(.failure(.decoding(error)))
+            } catch {
+                completion(.failure(.decoding))
             }
         }
         

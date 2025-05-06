@@ -77,7 +77,6 @@ class ListContactsViewController: UIViewController, UITableViewDataSource, UITab
         }
         
         let contact = contacts[indexPath.row]
-        print("cellForRow \(indexPath.row)")
         presenter.cellWillAppear(for: contact) { cellViewModel in
             cell.configure(with: cellViewModel)
         }
